@@ -25,12 +25,12 @@ class FullScreenImageView : DialogFragment(){
     private lateinit var count : TextView
     private lateinit var imageView : ImageView
 
-    private lateinit var pictures : ArrayList<String>
+    private var pictures : ArrayList<String>? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let {
-            pictures = it.getStringArrayList(picturesKey)!!
+            pictures = it.getStringArrayList(picturesKey)
         }
         setStyle(DialogFragment.STYLE_NORMAL,
             android.R.style.Theme_Black_NoTitleBar_Fullscreen);
@@ -60,21 +60,24 @@ class FullScreenImageView : DialogFragment(){
         count = view.count
         imageView = view.imageView
 
-        setImage(pictures[0])
+        if (pictures.isNullOrEmpty())
+            this.dismiss()
+        else {
+            pictures?.let {
+                setImage(it[0])
+                view.recyclerView.let { rec ->
+                    rec.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+                    rec.adapter = RecAdapter(it)
+                }
 
-
-        view.recyclerView.let {
-            it.layoutManager = LinearLayoutManager(context,LinearLayoutManager.HORIZONTAL,false)
-            it.adapter = RecAdapter(pictures)
+            }
         }
-
-
         return view
     }
 
     @SuppressLint("SetTextI18n")
     private fun changeCount(number : Int = 0){
-        count.text = "${number+1} - ${pictures.size}"
+        count.text = "${number+1} - ${pictures?.size}"
     }
 
     private fun setImage(url : String){
@@ -83,7 +86,7 @@ class FullScreenImageView : DialogFragment(){
             .load(url)
             .into(imageView)
 
-        changeCount(pictures.indexOf(url))
+        changeCount(pictures!!.indexOf(url))
     }
 
 
